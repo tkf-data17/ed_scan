@@ -9,8 +9,6 @@ st.set_page_config(page_title="Ed_scan - Editeur PDF", layout="wide")
 # --- Chargement du CSS personnalisé ---
 load_css()
 
-# --- Suppression du Titre par défaut et de la Sidebar ---
-# Le titre est géré par le HTML personnalisé dans style.py
 
 # --- Contenu Principal avec Onglets ---
 tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🖼️ PDF to JPEG"])
@@ -40,7 +38,7 @@ with tab_fusion:
 
         # --- Card 2: Document Annexe ---
         st.markdown('<div class="card-label">📄 Document à Ajouter</div>', unsafe_allow_html=True)
-        annexe_docs = st.file_uploader("Choisissez le(s) fichier(s) à ajouter", type="pdf", accept_multiple_files=True, key="inserer_annexes", label_visibility="collapsed")
+        annexe_docs = st.file_uploader("Choisissez le(s) fichier(s) à ajouter", type=["pdf", "png", "jpg", "jpeg"], accept_multiple_files=True, key="inserer_annexes", label_visibility="collapsed")
         
         st.markdown("---") 
 

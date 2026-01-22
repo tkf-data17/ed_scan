@@ -1,6 +1,7 @@
 from pypdf import PdfReader, PdfWriter
 import io
 import re
+import fitz # PyMuPDF
 
 # --- Fonctions de manipulation PDF ---
 
@@ -19,13 +20,33 @@ def insert_pdfs_mem(main_pdf, annexe_pdfs, insertion_point):
     for i in range(insertion_index):
         writer.add_page(main_reader.pages[i])
 
-    for annexe_pdf in annexe_pdfs:
+    for annexe_file in annexe_pdfs:
         try:
-            annexe_reader = PdfReader(annexe_pdf)
+            # Vérifier si c'est une image (basé sur l'extension ou le nom)
+            # Streamlit UploadedFile a un attribut .name
+            filename = annexe_file.name.lower()
+            is_image = filename.endswith(('.jpg', '.jpeg', '.png'))
+
+            if is_image:
+                # Convertir l'image en PDF avec PyMuPDF
+                img_bytes = annexe_file.read()
+                # On ouvre l'image
+                # On recupere l'extension sans le point
+                ext = filename.split('.')[-1]
+                with fitz.open(stream=img_bytes, filetype=ext) as img_doc:
+                    # On convertit en PDF (bytes)
+                    pdf_bytes = img_doc.convert_to_pdf()
+                    # On crée un PdfReader à partir des bytes du PDF converti
+                    annexe_reader = PdfReader(io.BytesIO(pdf_bytes))
+            else:
+                # C'est un PDF standard
+                annexe_reader = PdfReader(annexe_file)
+
             for page in annexe_reader.pages:
                 writer.add_page(page)
+
         except Exception as e:
-            raise ValueError(f"Impossible de lire l'un des fichiers annexes. Erreur: {e}")
+            raise ValueError(f"Impossible de lire/convertir le fichier annexe '{annexe_file.name}'. Erreur: {e}")
 
     for i in range(insertion_index, len(main_reader.pages)):
         writer.add_page(main_reader.pages[i])
