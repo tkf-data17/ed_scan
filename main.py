@@ -9,7 +9,7 @@ def fusion_tab():
     st.markdown("<h2 style='text-align: center; color: #333;'>Fusionner des Documents PDF</h2>", unsafe_allow_html=True)
     
     # Structure de grille pour centrer le contenu (1/3 largeur)
-    col_left, col_center, col_right = st.columns([1, 1, 1])
+    col_left, col_center, col_right = st.columns([1, 2, 1])
 
     with col_center:
         # --- Card 1: Document Principal ---
@@ -67,7 +67,7 @@ def suppr_tab():
     st.markdown("<h2 style='text-align: center; color: #333;'>Supprimer des Pages</h2>", unsafe_allow_html=True)
 
     # Structure de grille pour centrer (1/3 largeur)
-    col_left, col_center, col_right = st.columns([1, 1, 1])
+    col_left, col_center, col_right = st.columns([1, 2, 1])
 
     with col_center:
         st.markdown('<div class="card-label">📄 Document à Modifier</div>', unsafe_allow_html=True)
@@ -112,7 +112,7 @@ def suppr_tab():
 def convert_tab():
     st.markdown("<h2 style='text-align: center; color: #333;'>Convertir PDF en Image(s)</h2>", unsafe_allow_html=True)
 
-    col_left, col_center, col_right = st.columns([1, 1, 1])
+    col_left, col_center, col_right = st.columns([1, 2, 1])
     
     with col_center:
         st.markdown('<div class="card-label">📄 Document à Convertir</div>', unsafe_allow_html=True)
@@ -157,7 +157,7 @@ def main():
     load_css()
     
     # --- Contenu Principal avec Onglets ---
-    tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🖼️ PDF to JPEG"])
+    tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🖼️ Convertir PDF en JPEG"])
 
     with tab_fusion:
         fusion_tab()

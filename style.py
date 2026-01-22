@@ -52,7 +52,7 @@ def load_css():
             }
             .header h1 {
                 margin: 0;
-                font-size: 1.8rem; /* Slightly reduced to fit better if compact */
+                font-size: 2.5rem; /* Slightly reduced to fit better if compact */
                 font-weight: 700;
                 display: flex;
                 align-items: center;
@@ -61,8 +61,9 @@ def load_css():
             }
             .header p {
                 margin: 0;
-                font-size: 0.9rem;
+                font-size: 1rem;
                 opacity: 0.95;
+                margin-left: 20px;
             }
 
             /* --- Tabs Styling --- */
@@ -84,7 +85,7 @@ def load_css():
             button[data-baseweb="tab"] {
                 flex: 1;
                 font-weight: 800; 
-                font-size: 2rem !important; /* Bumping to 1.5rem to ensure it is visible */
+                font-size: 1.6rem !important; /* Bumping to 1.5rem to ensure it is visible */
                 border-radius: 8px;
                 border: 2px solid var(--primary-color);
                 background-color: white;
@@ -174,6 +175,13 @@ def load_css():
             }
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
+
+            /* Tabs text hard override */
+            div[data-baseweb="tab-list"] button * {
+                font-size: 1.6rem !important;
+                font-weight: 800 !important;
+            }
+
 
         </style>
     """, unsafe_allow_html=True)
