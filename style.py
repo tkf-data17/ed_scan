@@ -83,8 +83,8 @@ def load_css():
             
             button[data-baseweb="tab"] {
                 flex: 1;
-                font-weight: 700; 
-                font-size: 1.5rem; /* Bumping to 1.5rem to ensure it is visible */
+                font-weight: 800; 
+                font-size: 2rem !important; /* Bumping to 1.5rem to ensure it is visible */
                 border-radius: 8px;
                 border: 2px solid var(--primary-color);
                 background-color: white;

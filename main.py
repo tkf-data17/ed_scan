@@ -1,6 +1,6 @@
 import streamlit as st
 from pypdf import PdfReader
-from app import insert_pdfs_mem, delete_pages_mem, parse_page_numbers
+from app import insert_pdfs_mem, delete_pages_mem, parse_page_numbers, convert_pdf_to_jpegs_mem
 from style import load_css
 
 # --- Configuration de la page ---
@@ -13,7 +13,7 @@ load_css()
 # Le titre est géré par le HTML personnalisé dans style.py
 
 # --- Contenu Principal avec Onglets ---
-tab_fusion, tab_suppr = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages"])
+tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🖼️ PDF to JPEG"])
 
 # ==========================================
 # ONGLET 1 : FUSIONNER (Insert)
@@ -84,7 +84,6 @@ with tab_suppr:
     st.markdown("<h2 style='text-align: center; color: #333;'>Supprimer des Pages</h2>", unsafe_allow_html=True)
 
     # Structure de grille pour centrer (1/3 largeur)
-    # [1, 1, 1] signifie 3 colonnes de tailles égales. On utilise celle du milieu.
     col_left, col_center, col_right = st.columns([1, 1, 1])
 
     with col_center:
@@ -126,3 +125,44 @@ with tab_suppr:
                             )
                     except Exception as e:
                         st.error(f"Erreur : {e}")
+
+# ==========================================
+# ONGLET 3 : PDF TO JPEG
+# ==========================================
+with tab_convert:
+    st.markdown("<h2 style='text-align: center; color: #333;'>Convertir PDF en Image(s)</h2>", unsafe_allow_html=True)
+
+    col_left, col_center, col_right = st.columns([1, 1, 1])
+    
+    with col_center:
+        st.markdown('<div class="card-label">📄 Document à Convertir</div>', unsafe_allow_html=True)
+        convert_doc = st.file_uploader("Choisissez le fichier PDF", type="pdf", key="convert_doc", label_visibility="collapsed")
+        
+        if convert_doc:
+             st.caption("✅ Document chargé. Prêt à être converti.")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        if st.button("Convertir en images", key="btn_convert"):
+            if not convert_doc:
+                st.warning("Veuillez charger un document PDF.")
+            else:
+                with st.spinner("Conversion en cours..."):
+                    try:
+                        # Reset pointer just in case
+                        convert_doc.seek(0)
+                        res_type, res_data, res_name = convert_pdf_to_jpegs_mem(convert_doc)
+                        
+                        st.success("Conversion réussie !")
+                        
+                        mime_type = "image/jpeg" if res_type == "image" else "application/zip"
+                        label_btn = "📥 Télécharger l'image" if res_type == "image" else "📥 Télécharger fichier compressé"
+                        
+                        st.download_button(
+                            label=label_btn,
+                            data=res_data,
+                            file_name=res_name,
+                            mime=mime_type
+                        )
+                    except Exception as e:
+                        st.error(f"Erreur lors de la conversion : {e}")

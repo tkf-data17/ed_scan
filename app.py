@@ -90,3 +90,49 @@ def parse_page_numbers(pages_str, max_pages):
             except ValueError:
                 raise ValueError(f"Numéro de page invalide : '{part}'")
     return sorted(list(pages))
+
+def convert_pdf_to_jpegs_mem(pdf_file):
+    """
+    Convertit les pages d'un PDF en images JPEG.
+    Retourne un tuple (type_resultat, data, nom_fichier_suggéré).
+    - type_resultat: 'image' (si 1 page) ou 'zip' (si > 1 page)
+    - data: bytes de l'image ou du fichier zip
+    - nom_fichier_suggéré: nom pour le téléchargement
+    """
+    import fitz # PyMuPDF
+    import zipfile
+    
+    # Lire le flux PDF
+    # Note: pdf_file est un UploadedFile de streamlit, il se comporte comme un fichier ouvert.
+    # On lit les bytes.
+    pdf_bytes = pdf_file.read()
+    
+    # Ouvrir avec fitz
+    try:
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    except Exception as e:
+        raise ValueError(f"Impossible d'ouvrir le PDF avec PyMuPDF: {e}")
+    
+    if len(doc) == 0:
+        raise ValueError("Le document PDF est vide.")
+        
+    # Si une seule page
+    if len(doc) == 1:
+        page = doc[0]
+        # zoom = 2 pour meilleure qualité (dpi ~144 -> 2*72)
+        # dpi=300 est mieux. get_pixmap gère dpi ou matrix.
+        pix = page.get_pixmap(dpi=300) 
+        img_bytes = pix.tobytes("jpg")
+        return "image", img_bytes, "page_converted.jpg"
+        
+    # Si plusieurs pages -> ZIP
+    else:
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            for i, page in enumerate(doc):
+                pix = page.get_pixmap(dpi=300)
+                img_bytes = pix.tobytes("jpg")
+                zip_file.writestr(f"page_{i+1}.jpg", img_bytes)
+        
+        zip_buffer.seek(0)
+        return "zip", zip_buffer.getvalue(), "images_converted.zip"
