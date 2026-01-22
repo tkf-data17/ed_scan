@@ -1,26 +1,14 @@
 import streamlit as st
 from pypdf import PdfReader
-from app import insert_pdfs_mem, delete_pages_mem, parse_page_numbers, convert_pdf_to_jpegs_mem
+from utils import insert_pdfs_mem, delete_pages_mem, parse_page_numbers, convert_pdf_to_jpegs_mem
 from style import load_css
 
-# --- Configuration de la page ---
-st.set_page_config(page_title="Ed_scan - Editeur PDF", layout="wide")
+# --- Fonctions d'affichage des onglets ---
 
-# --- Chargement du CSS personnalisé ---
-load_css()
-
-
-# --- Contenu Principal avec Onglets ---
-tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🖼️ PDF to JPEG"])
-
-# ==========================================
-# ONGLET 1 : FUSIONNER (Insert)
-# ==========================================
-with tab_fusion:
+def fusion_tab():
     st.markdown("<h2 style='text-align: center; color: #333;'>Fusionner des Documents PDF</h2>", unsafe_allow_html=True)
     
     # Structure de grille pour centrer le contenu (1/3 largeur)
-    # [1, 1, 1] signifie 3 colonnes de tailles égales. On utilise celle du milieu.
     col_left, col_center, col_right = st.columns([1, 1, 1])
 
     with col_center:
@@ -75,10 +63,7 @@ with tab_fusion:
                     except Exception as e:
                         st.error(f"Une erreur est survenue : {e}")
 
-# ==========================================
-# ONGLET 2 : SUPPRIMER (Delete)
-# ==========================================
-with tab_suppr:
+def suppr_tab():
     st.markdown("<h2 style='text-align: center; color: #333;'>Supprimer des Pages</h2>", unsafe_allow_html=True)
 
     # Structure de grille pour centrer (1/3 largeur)
@@ -124,10 +109,7 @@ with tab_suppr:
                     except Exception as e:
                         st.error(f"Erreur : {e}")
 
-# ==========================================
-# ONGLET 3 : PDF TO JPEG
-# ==========================================
-with tab_convert:
+def convert_tab():
     st.markdown("<h2 style='text-align: center; color: #333;'>Convertir PDF en Image(s)</h2>", unsafe_allow_html=True)
 
     col_left, col_center, col_right = st.columns([1, 1, 1])
@@ -164,3 +146,27 @@ with tab_convert:
                         )
                     except Exception as e:
                         st.error(f"Erreur lors de la conversion : {e}")
+
+# --- Main Application ---
+
+def main():
+    # --- Configuration de la page ---
+    st.set_page_config(page_title="Ed_scan - Editeur PDF", layout="wide")
+
+    # --- Chargement du CSS personnalisé ---
+    load_css()
+    
+    # --- Contenu Principal avec Onglets ---
+    tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🖼️ PDF to JPEG"])
+
+    with tab_fusion:
+        fusion_tab()
+
+    with tab_suppr:
+        suppr_tab()
+    
+    with tab_convert:
+        convert_tab()
+
+if __name__ == "__main__":
+    main()
