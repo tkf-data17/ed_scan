@@ -1,6 +1,6 @@
 import streamlit as st
 from pypdf import PdfReader
-from utils import insert_pdfs_mem, delete_pages_mem, parse_page_numbers, convert_pdf_to_jpegs_mem
+from utils import insert_pdfs_mem, delete_pages_mem, parse_page_numbers, convert_pdf_to_jpegs_mem, convert_pdf_to_word_mem
 from style import load_css
 
 # --- Fonctions d'affichage des onglets ---
@@ -110,7 +110,7 @@ def suppr_tab():
                         st.error(f"Erreur : {e}")
 
 def convert_tab():
-    st.markdown("<h2 style='text-align: center; color: #333;'>Convertir PDF en Image(s)</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #333;'>Convertir PDF</h2>", unsafe_allow_html=True)
 
     col_left, col_center, col_right = st.columns([1, 2, 1])
     
@@ -120,10 +120,14 @@ def convert_tab():
         
         if convert_doc:
              st.caption("✅ Document chargé. Prêt à être converti.")
+        
+        st.markdown("---")
+        st.markdown('<div class="card-label">Format de sortie</div>', unsafe_allow_html=True)
+        format_choice = st.radio("Format", ["Image (JPEG)", "Word (DOCX)"], horizontal=True, label_visibility="collapsed")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        if st.button("Convertir en images", key="btn_convert"):
+        if st.button("Convertir", key="btn_convert"):
             if not convert_doc:
                 st.warning("Veuillez charger un document PDF.")
             else:
@@ -131,13 +135,19 @@ def convert_tab():
                     try:
                         # Reset pointer just in case
                         convert_doc.seek(0)
-                        res_type, res_data, res_name = convert_pdf_to_jpegs_mem(convert_doc)
                         
+                        if format_choice == "Image (JPEG)":
+                            res_type, res_data, res_name = convert_pdf_to_jpegs_mem(convert_doc)
+                            
+                            mime_type = "image/jpeg" if res_type == "image" else "application/zip"
+                            label_btn = "📥 Télécharger l'image" if res_type == "image" else "📥 Télécharger fichier compressé"
+                            
+                        else: # Word
+                            res_data, res_name = convert_pdf_to_word_mem(convert_doc)
+                            mime_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            label_btn = "📥 Télécharger Word"
+
                         st.success("Conversion réussie !")
-                        
-                        mime_type = "image/jpeg" if res_type == "image" else "application/zip"
-                        label_btn = "📥 Télécharger l'image" if res_type == "image" else "📥 Télécharger fichier compressé"
-                        
                         st.download_button(
                             label=label_btn,
                             data=res_data,
@@ -157,7 +167,7 @@ def main():
     load_css()
     
     # --- Contenu Principal avec Onglets ---
-    tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🖼️ Convertir PDF en JPEG"])
+    tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🔄 Convertir Document"])
 
     with tab_fusion:
         fusion_tab()

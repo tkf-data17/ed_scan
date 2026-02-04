@@ -4,6 +4,10 @@ def load_css():
     """
     Injecte du CSS personnalisé pour améliorer le style de l'application Streamlit.
     """
+    # F - Formattage CSS personnalisé global
+    # I - Intégration des polices et couleurs
+    # A - Affichage des éléments graphiques
+    # M - Mise en forme responsive et moderne
     st.markdown("""
         <style>
             /* --- Import Google Fonts --- */

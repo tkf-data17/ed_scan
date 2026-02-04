@@ -10,6 +10,11 @@ def insert_pdfs_mem(main_pdf, annexe_pdfs, insertion_point):
     Insère des documents PDF (annexes) dans un document PDF principal en mémoire.
     L'insertion se fait au début de la page spécifiée.
     """
+    # F - Fusionner le document principal avec les annexes
+    # I - Initialiser les lecteurs et écrivains PDF
+    # A - Ajouter les pages dans l'ordre séquentiel
+    # M - Manipuler les flux de données en mémoire
+    
     main_reader = PdfReader(main_pdf)
     writer = PdfWriter()
     insertion_index = insertion_point - 1
@@ -157,3 +162,58 @@ def convert_pdf_to_jpegs_mem(pdf_file):
         
         zip_buffer.seek(0)
         return "zip", zip_buffer.getvalue(), "images_converted.zip"
+
+def convert_pdf_to_word_mem(pdf_file):
+    """
+    Convertit un PDF en document Word (DOCX).
+    Retourne un tuple (bytes_docx, nom_fichier_suggéré).
+    """
+    import tempfile
+    import os
+    from pdf2docx import Converter
+
+    # Création d'un fichier temporaire pour le PDF
+    # On utilise delete=False pour pouvoir fermer le fichier avant que pdf2docx ne l'ouvre (windows lock)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+        # Si c'est un Streamlit UploadedFile, on peut faire getvalue()
+        # Sinon read(). On assume UploadedFile ici.
+        try:
+            content = pdf_file.getvalue()
+        except AttributeError:
+             # Fallback si ce n'est pas un UploadedFile
+            pdf_file.seek(0)
+            content = pdf_file.read()
+            
+        tmp_pdf.write(content)
+        tmp_pdf_path = tmp_pdf.name
+    
+    tmp_docx_path = tmp_pdf_path.replace(".pdf", ".docx")
+
+    try:
+        # Conversion
+        cv = Converter(tmp_pdf_path)
+        cv.convert(tmp_docx_path, start=0, end=None)
+        cv.close()
+
+        # Lecture du résultat
+        if os.path.exists(tmp_docx_path):
+            with open(tmp_docx_path, "rb") as f:
+                docx_bytes = f.read()
+            return docx_bytes, "document_converted.docx"
+        else:
+            raise Exception("Le fichier DOCX n'a pas été créé.")
+
+    except Exception as e:
+        raise ValueError(f"Erreur lors de la conversion PDF -> Word : {e}")
+    finally:
+        # Nettoyage
+        if os.path.exists(tmp_pdf_path):
+            try:
+                os.remove(tmp_pdf_path)
+            except:
+                pass
+        if os.path.exists(tmp_docx_path):
+            try:
+                os.remove(tmp_docx_path)
+            except:
+                pass
