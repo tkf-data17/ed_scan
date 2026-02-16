@@ -125,12 +125,13 @@ def convert_pdf_to_jpegs_mem(pdf_file):
     - data: bytes de l'image ou du fichier zip
     - nom_fichier_suggéré: nom pour le téléchargement
     """
-    import fitz # PyMuPDF
     import zipfile
     
     # Lire le flux PDF
     # Note: pdf_file est un UploadedFile de streamlit, il se comporte comme un fichier ouvert.
     # On lit les bytes.
+    if hasattr(pdf_file, 'seek'):
+        pdf_file.seek(0)
     pdf_bytes = pdf_file.read()
     
     # Ouvrir avec fitz
@@ -244,7 +245,6 @@ def extract_pages_to_images_mem(pdf_file, pages_to_extract):
     Retourne (type_resultat, bytes_data, finename).
     type_resultat: 'image' ou 'zip'
     """
-    import fitz # PyMuPDF
     import zipfile
     
     # Si c'est un UploadedFile, on peut lire directement

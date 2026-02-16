@@ -17,10 +17,11 @@ def fusion_tab():
         main_doc = st.file_uploader("Choisissez le fichier principal", type="pdf", key="inserer_main", label_visibility="collapsed")
         if main_doc:
             try:
+                 main_doc.seek(0)
                  reader = PdfReader(main_doc)
                  st.caption(f"✅ {len(reader.pages)} pages détectées")
-            except:
-                 st.error("Erreur lecture PDF")
+            except Exception as e:
+                 st.error(f"Erreur lecture PDF: {e}")
 
         st.markdown("---") # Séparateur visuel léger
 
@@ -76,10 +77,11 @@ def suppr_tab():
         num_pages_del = 0
         if delete_doc:
             try:
+                delete_doc.seek(0)
                 num_pages_del = len(PdfReader(delete_doc).pages)
                 st.caption(f"✅ {num_pages_del} pages détectées")
-            except:
-                st.error("Erreur lecture PDF")
+            except Exception as e:
+                st.error(f"Erreur lecture PDF: {e}")
 
         st.markdown("---")
 
@@ -170,11 +172,12 @@ def extract_tab():
         num_pages_total = 0
         if extract_doc:
             try:
+                extract_doc.seek(0)
                 reader = PdfReader(extract_doc)
                 num_pages_total = len(reader.pages)
                 st.caption(f"✅ {num_pages_total} pages détectées")
-            except:
-                st.error("Erreur lecture PDF")
+            except Exception as e:
+                st.error(f"Erreur lecture PDF: {e}")
         
         st.markdown("---")
         
