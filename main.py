@@ -1,6 +1,6 @@
 import streamlit as st
 from pypdf import PdfReader
-from utils import insert_pdfs_mem, delete_pages_mem, parse_page_numbers, convert_pdf_to_jpegs_mem, convert_pdf_to_word_mem
+from utils import insert_pdfs_mem, delete_pages_mem, parse_page_numbers, convert_pdf_to_jpegs_mem, convert_pdf_to_word_mem, extract_pages_to_pdf_mem, extract_pages_to_images_mem
 from style import load_css
 
 # --- Fonctions d'affichage des onglets ---
@@ -157,6 +157,73 @@ def convert_tab():
                     except Exception as e:
                         st.error(f"Erreur lors de la conversion : {e}")
 
+
+def extract_tab():
+    st.markdown("<h2 style='text-align: center; color: #333;'>Extraire des Pages</h2>", unsafe_allow_html=True)
+
+    col_left, col_center, col_right = st.columns([1, 2, 1])
+    
+    with col_center:
+        st.markdown('<div class="card-label">📄 Document Source</div>', unsafe_allow_html=True)
+        extract_doc = st.file_uploader("Choisissez le fichier PDF", type="pdf", key="extract_doc", label_visibility="collapsed")
+        
+        num_pages_total = 0
+        if extract_doc:
+            try:
+                reader = PdfReader(extract_doc)
+                num_pages_total = len(reader.pages)
+                st.caption(f"✅ {num_pages_total} pages détectées")
+            except:
+                st.error("Erreur lecture PDF")
+        
+        st.markdown("---")
+        
+        st.markdown('<div class="card-label">Pages à extraire (ex: 1, 3-5)</div>', unsafe_allow_html=True)
+        pages_str = st.text_input("Pages", key="extract_pages_input", label_visibility="collapsed", placeholder="Exemple: 1, 3-5", help="Entrez les numéros de pages séparés par des virgules ou des tirets.")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        st.markdown('<div class="card-label">Format de sortie</div>', unsafe_allow_html=True)
+        output_format = st.radio("Format", ["PDF", "Images (JPEG)"], horizontal=True, key="extract_format", label_visibility="collapsed")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        if st.button("Extraire les Pages", key="btn_extract"):
+            if not extract_doc or not pages_str:
+                st.warning("Veuillez charger un fichier PDF et indiquer les pages à extraire.")
+            else:
+                with st.spinner("Extraction en cours..."):
+                    try:
+                        # Reset pointer
+                        extract_doc.seek(0)
+                        
+                        pages_to_extract = parse_page_numbers(pages_str, num_pages_total)
+                        
+                        if not pages_to_extract:
+                            st.warning("Aucune page valide sélectionnée.")
+                        else:
+                            if output_format == "PDF":
+                                res_pdf = extract_pages_to_pdf_mem(extract_doc, pages_to_extract)
+                                st.success("Extraction réussie !")
+                                st.download_button(
+                                    label="📥 Télécharger PDF",
+                                    data=res_pdf.getvalue(),
+                                    file_name="pages_extraites.pdf",
+                                    mime="application/pdf"
+                                )
+                            else:
+                                type_res, data_res, name_res = extract_pages_to_images_mem(extract_doc, pages_to_extract)
+                                mime = "image/jpeg" if type_res == "image" else "application/zip"
+                                st.success("Extraction réussie !")
+                                st.download_button(
+                                    label=f"📥 Télécharger {name_res}",
+                                    data=data_res,
+                                    file_name=name_res,
+                                    mime=mime
+                                )
+                    except Exception as e:
+                        st.error(f"Une erreur est survenue : {e}")
+
 # --- Main Application ---
 
 def main():
@@ -167,7 +234,7 @@ def main():
     load_css()
     
     # --- Contenu Principal avec Onglets ---
-    tab_fusion, tab_suppr, tab_convert = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🔄 Convertir Document"])
+    tab_fusion, tab_suppr, tab_convert, tab_extract = st.tabs(["⚡ Fusionner", "🗑️ Supprimer Pages", "🔄 Convertir Document", "📑 Extraire Pages"])
 
     with tab_fusion:
         fusion_tab()
@@ -175,8 +242,12 @@ def main():
     with tab_suppr:
         suppr_tab()
     
+    
     with tab_convert:
         convert_tab()
+
+    with tab_extract:
+        extract_tab()
 
 if __name__ == "__main__":
     main()

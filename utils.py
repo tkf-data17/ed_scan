@@ -212,8 +212,74 @@ def convert_pdf_to_word_mem(pdf_file):
                 os.remove(tmp_pdf_path)
             except:
                 pass
+            
         if os.path.exists(tmp_docx_path):
             try:
                 os.remove(tmp_docx_path)
             except:
                 pass
+
+def extract_pages_to_pdf_mem(pdf_file, pages_to_extract):
+    """
+    Extraire des pages spécifiques d'un PDF et renvoyer un nouveau PDF (bytes).
+    pages_to_extract: liste de numéros de pages (1-based index).
+    """
+    reader = PdfReader(pdf_file)
+    writer = PdfWriter()
+    
+    # On parcourt les pages demandées
+    for p_num in pages_to_extract:
+        idx = p_num - 1
+        if 0 <= idx < len(reader.pages):
+            writer.add_page(reader.pages[idx])
+            
+    output_pdf_stream = io.BytesIO()
+    writer.write(output_pdf_stream)
+    output_pdf_stream.seek(0)
+    return output_pdf_stream
+
+def extract_pages_to_images_mem(pdf_file, pages_to_extract):
+    """
+    Extraire des pages spécifiques et les convertir en images (JPEG).
+    Retourne (type_resultat, bytes_data, finename).
+    type_resultat: 'image' ou 'zip'
+    """
+    import fitz # PyMuPDF
+    import zipfile
+    
+    # Si c'est un UploadedFile, on peut lire directement
+    # Assurez-vous que le pointeur est au début si réutilisé
+    if hasattr(pdf_file, 'seek'):
+        pdf_file.seek(0)
+    pdf_bytes = pdf_file.read()
+    
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    
+    # Collecter les pages valides
+    valid_pages = []
+    for p_num in pages_to_extract:
+        idx = p_num - 1
+        if 0 <= idx < len(doc):
+            valid_pages.append((p_num, doc[idx]))
+            
+    if not valid_pages:
+        raise ValueError("Aucune page valide trouvée pour l'extraction.")
+        
+    # Cas 1 page
+    if len(valid_pages) == 1:
+        p_num, page = valid_pages[0]
+        pix = page.get_pixmap(dpi=300)
+        img_bytes = pix.tobytes("jpg")
+        return "image", img_bytes, f"page_{p_num}.jpg"
+        
+    # Cas > 1 page -> ZIP
+    else:
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            for p_num, page in valid_pages:
+                pix = page.get_pixmap(dpi=300)
+                img_bytes = pix.tobytes("jpg")
+                zf.writestr(f"page_{p_num}.jpg", img_bytes)
+                
+        zip_buffer.seek(0)
+        return "zip", zip_buffer.getvalue(), "pages_extraites.zip"
